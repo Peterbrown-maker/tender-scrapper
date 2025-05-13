@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import os
 import sys
@@ -10,13 +10,13 @@ import base64
 
 app = Flask(__name__)
 
-# Configure CORS properly
+# Configure CORS to allow all origins for simplicity
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:3000", "https://tenderscapper.web.app/home"],  # Add your actual domain
+        "origins": "*",  # Allow all origins
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "supports_credentials": False  # Change to False for no-cors mode
     }
 })
 
@@ -59,6 +59,10 @@ def scrape_tenders():
             # Here we'll return the Excel as base64 for simplicity
             with open(excel_filename, 'rb') as f:
                 excel_data = base64.b64encode(f.read()).decode()
+                
+            # Clean up temp files
+            os.remove(excel_filename)
+            os.rmdir(temp_dir)
             
             return jsonify({
                 'tenders': tenders[:50],
@@ -76,6 +80,11 @@ def scrape_tenders():
             'error': str(e)
         }), 500
 
+# Add a test endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
+
 # Entry point for Google Cloud Functions
 def main(request):
     # Important: Create app context for Cloud Functions
@@ -84,4 +93,4 @@ def main(request):
 
 # For local development
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='0.0.0.0')
