@@ -68,5 +68,5 @@ def main(request):
     with app.app_context():
         return app.full_dispatch_request()
     
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+# if __name__ == '__main__':
+#     app.run(debug=True, port=5000)
