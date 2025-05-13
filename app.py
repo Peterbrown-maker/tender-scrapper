@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file, request
+from flask import Flask, jsonify, send_file
 from flask_cors import CORS
 import os
 import sys
@@ -6,26 +6,12 @@ import pandas as pd
 from tenders import TenderScraper
 import tempfile
 import datetime
-import base64
 
 app = Flask(__name__)
+CORS(app, origins=['http://localhost:3000', 'https://tenderscapper.web.app'])
 
-# Configure CORS to allow all origins for simplicity
-CORS(app, resources={
-    r"/api/*": {
-        "origins": "*",  # Allow all origins
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": False  # Change to False for no-cors mode
-    }
-})
-
-@app.route('/api/scrape-tenders', methods=['POST', 'OPTIONS'])
+@app.route('/api/scrape-tenders', methods=['POST'])
 def scrape_tenders():
-    # Handle preflight requests
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
-        
     try:
         scraper = TenderScraper()
         tenders = scraper.scrape_tenders()
@@ -57,17 +43,13 @@ def scrape_tenders():
             
             # Store file in Google Cloud Storage (recommended) or return base64
             # Here we'll return the Excel as base64 for simplicity
+            import base64
             with open(excel_filename, 'rb') as f:
                 excel_data = base64.b64encode(f.read()).decode()
-                
-            # Clean up temp files
-            os.remove(excel_filename)
-            os.rmdir(temp_dir)
             
             return jsonify({
                 'tenders': tenders[:50],
-                'excelData': excel_data,  # Base64 encoded Excel file
-                'excelFileName': f'tenders_{timestamp}.xlsx'
+                'excelData': excel_data  # Base64 encoded Excel file
             })
         else:
             return jsonify({
@@ -80,17 +62,11 @@ def scrape_tenders():
             'error': str(e)
         }), 500
 
-# Add a test endpoint
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy'}), 200
-
 # Entry point for Google Cloud Functions
 def main(request):
     # Important: Create app context for Cloud Functions
     with app.app_context():
         return app.full_dispatch_request()
-
-# For local development
-if __name__ == '__main__':
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    
+# if __name__ == '__main__':
+#     app.run(debug=True, port=5000)
