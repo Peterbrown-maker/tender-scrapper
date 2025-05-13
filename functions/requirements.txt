@@ -1,0 +1,10 @@
+firebase_functions~=0.1.0
+flask
+flask-cors
+requests
+beautifulsoup4
+pandas
+openpyxl
+urllib3
+lxml
+python-dateutil
