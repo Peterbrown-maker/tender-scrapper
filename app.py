@@ -13,7 +13,7 @@ app = Flask(__name__)
 # Configure CORS properly
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:3000", "https://tenderscapper.web.app"],  # Add your actual domain
+        "origins": ["http://localhost:3000", "https://tenderscapper.web.app/home"],  # Add your actual domain
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True
